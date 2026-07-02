@@ -13,7 +13,28 @@ env:
   IMAGE_NAME: ghcr.io/dubois-laurent/locationvoiture
 
 jobs:
-  build-test-scan:
+  # Stage 1 : Tests
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore app/tests/LocationVoiture.Tests/LocationVoiture.Tests.csproj
+
+      - name: Run tests
+        run: dotnet test app/tests/LocationVoiture.Tests/LocationVoiture.Tests.csproj --configuration Release --no-restore
+
+  # Stage 2 : Contrôle de qualité
+  quality:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -33,11 +54,40 @@ jobs:
           dotnet format app/locationvoiture.csproj --verify-no-changes
           dotnet format app/tests/LocationVoiture.Tests/LocationVoiture.Tests.csproj --verify-no-changes
 
-      - name: Run tests
-        run: dotnet test app/tests/LocationVoiture.Tests/LocationVoiture.Tests.csproj --configuration Release --no-restore
+  # Stage 3 : Build de l'image Docker
+  build-image:
+    needs: quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build Docker image
         run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} -f app/Dockerfile app
+
+      - name: Save Docker image
+        run: docker save ${{ env.IMAGE_NAME }}:${{ github.sha }} -o locationvoiture-image.tar
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: locationvoiture-image
+          path: locationvoiture-image.tar
+
+  # Stage 4 : Scan de sécurité
+  security:
+    needs: build-image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: locationvoiture-image
+
+      - name: Load Docker image
+        run: docker load -i locationvoiture-image.tar
 
       - name: Scan Docker image
         uses: aquasecurity/trivy-action@0.28.0
@@ -48,15 +98,33 @@ jobs:
           vuln-type: "os,library"
           severity: "HIGH,CRITICAL"
 
+  # Stage 5 : Publication de l'image Docker
+  publish:
+    needs: security
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: locationvoiture-image
+
       - name: Log in to GHCR
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Load Docker image
+        run: docker load -i locationvoiture-image.tar
+
       - name: Tag image for release
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.IMAGE_NAME }}:latest
+
+      - name: Publish Docker image
+        run: |
+          docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_NAME }}:latest
