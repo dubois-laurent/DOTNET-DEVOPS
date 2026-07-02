@@ -2,12 +2,16 @@
 @model CarReservationCreateVM
 
 <form asp-action="Create" method="post">
+    <label asp-for="CarId">Id de la voiture</label>
     <input asp-for="CarId" />
     <span asp-validation-for="CarId"></span>
+    <label asp-for="CustomerId">Id du client</label>
     <input asp-for="CustomerId" />
     <span asp-validation-for="CustomerId"></span>
+    <label asp-for="StartDate">Date de début</label>
     <input asp-for="StartDate" />
     <span asp-validation-for="StartDate"></span>
+    <label asp-for="EndDate">Date de fin</label>
     <input asp-for="EndDate" />
     <span asp-validation-for="EndDate"></span>
     <button type="submit">Create</button>

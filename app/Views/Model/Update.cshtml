@@ -2,14 +2,19 @@
 
 <form asp-action="Update" method="post">
     <input asp-for="Id" type="hidden" />
+    <label asp-for="Name">Nom du modèle</label>
     <input asp-for="Name" />
     <span asp-validation-for="Name"></span>
+    <label asp-for="DailyPrice">Prix journalier</label>
     <input asp-for="DailyPrice" />
     <span asp-validation-for="DailyPrice"></span>
+    <label asp-for="NbSeats">Nombre de sièges</label>
     <input asp-for="NbSeats" />
     <span asp-validation-for="NbSeats"></span>
+    <label asp-for="FuelType">Type de carburant</label>
     <input asp-for="FuelType" />
     <span asp-validation-for="FuelType"></span>
+    <label asp-for="CarBrandId">Id de la marque de voiture</label>
     <input asp-for="CarBrandId" />
     <span asp-validation-for="CarBrandId"></span>
     <button type="submit">Update</button>
