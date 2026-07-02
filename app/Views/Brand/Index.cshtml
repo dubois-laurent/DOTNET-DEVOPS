@@ -1,0 +1,17 @@
+@model IEnumerable<CarBrand>
+
+<h2>Marques</h2>
+<a asp-action="Create" class="btn btn-primary mb-3">Ajouter une marque</a>
+
+<ul class="list-group">
+    @foreach (CarBrand brand in Model)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            @brand.Name
+            <span>
+                <a asp-action="Update" asp-route-id="@brand.Id" class="btn btn-sm btn-warning">Modifier</a>
+                <a asp-action="Delete" asp-route-id="@brand.Id" class="btn btn-sm btn-danger">Supprimer</a>
+            </span>
+        </li>
+    }
+</ul>

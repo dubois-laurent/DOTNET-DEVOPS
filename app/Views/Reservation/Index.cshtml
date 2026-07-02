@@ -1,0 +1,17 @@
+@model IEnumerable<CarReservation>
+
+<h2>Réservations</h2>
+<a asp-action="Create" class="btn btn-primary mb-3">Ajouter une réservation</a>
+
+<ul class="list-group">
+    @foreach (CarReservation reservation in Model)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            #@reservation.CarId &mdash; Client #@reservation.CarCustomerId &mdash; @reservation.StartDate.ToShortDateString() → @reservation.EndDate.ToShortDateString()
+            <span>
+                <a asp-action="Update" asp-route-id="@reservation.Id" class="btn btn-sm btn-warning">Modifier</a>
+                <a asp-action="Delete" asp-route-id="@reservation.Id" class="btn btn-sm btn-danger">Supprimer</a>
+            </span>
+        </li>
+    }
+</ul>

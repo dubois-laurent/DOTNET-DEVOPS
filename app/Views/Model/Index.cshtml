@@ -1,0 +1,17 @@
+@model IEnumerable<CarModel>
+
+<h2>Modèles</h2>
+<a asp-action="Create" class="btn btn-primary mb-3">Ajouter un modèle</a>
+
+<ul class="list-group">
+    @foreach (CarModel carModel in Model)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            @carModel.CarBrand?.Name &mdash; @carModel.Name &mdash; @carModel.DailyPrice €/j &mdash; @carModel.NbSeats places
+            <span>
+                <a asp-action="Update" asp-route-id="@carModel.Id" class="btn btn-sm btn-warning">Modifier</a>
+                <a asp-action="Delete" asp-route-id="@carModel.Id" class="btn btn-sm btn-danger">Supprimer</a>
+            </span>
+        </li>
+    }
+</ul>

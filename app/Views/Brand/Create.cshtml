@@ -1,0 +1,8 @@
+@using aspnet.Models.ViewModels
+@model CarBrandCreateVM
+
+<form asp-action="Create" method="post">
+    <input asp-for="Name" />
+    <span asp-validation-for="Name"></span>
+    <button type="submit">Create</button>
+</form>

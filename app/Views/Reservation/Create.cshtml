@@ -1,0 +1,14 @@
+@using aspnet.Models.ViewModels
+@model CarReservationCreateVM
+
+<form asp-action="Create" method="post">
+    <input asp-for="CarId" />
+    <span asp-validation-for="CarId"></span>
+    <input asp-for="CustomerId" />
+    <span asp-validation-for="CustomerId"></span>
+    <input asp-for="StartDate" />
+    <span asp-validation-for="StartDate"></span>
+    <input asp-for="EndDate" />
+    <span asp-validation-for="EndDate"></span>
+    <button type="submit">Create</button>
+</form>

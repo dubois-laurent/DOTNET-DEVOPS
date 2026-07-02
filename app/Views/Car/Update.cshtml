@@ -1,0 +1,10 @@
+@model CarUpdateVM
+
+<form asp-action="Update" method="post">
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="PlateNumber" />
+    <span asp-validation-for="PlateNumber"></span>
+    <input asp-for="CarModelId" />
+    <span asp-validation-for="CarModelId"></span>
+    <button type="submit">Update</button>
+</form>

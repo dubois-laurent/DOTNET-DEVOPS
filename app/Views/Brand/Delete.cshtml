@@ -1,0 +1,8 @@
+@using aspnet.Models.ViewModels
+@model CarBrandDeleteVM
+
+<form asp-action="Delete" method="post">
+    <input asp-for="Id" type="hidden" />
+    <p>Voulez vous supprimer cette marque ?</p>
+    <button type="submit">Delete</button>
+</form>
