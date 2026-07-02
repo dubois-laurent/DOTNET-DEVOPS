@@ -14,7 +14,7 @@ env:
 
 jobs:
   # Stage 1 : Tests
-  test:
+  tests-unitaires:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,8 +33,8 @@ jobs:
         run: dotnet test app/tests/LocationVoiture.Tests/LocationVoiture.Tests.csproj --configuration Release --no-restore
 
   # Stage 2 : Contrôle de qualité
-  quality:
-    needs: test
+  lint:
+    needs: tests-unitaires
     runs-on: ubuntu-latest
 
     steps:
@@ -56,7 +56,7 @@ jobs:
 
   # Stage 3 : Build de l'image Docker
   build-image:
-    needs: quality
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:
@@ -90,7 +90,7 @@ jobs:
         run: docker load -i locationvoiture-image.tar
 
       - name: Scan Docker image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: table
@@ -99,7 +99,7 @@ jobs:
           severity: "HIGH,CRITICAL"
 
   # Stage 5 : Publication de l'image Docker
-  publish:
+  docker-publish:
     needs: security
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
