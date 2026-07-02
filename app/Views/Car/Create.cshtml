@@ -1,8 +1,10 @@
 @model CarCreateVM
 
 <form asp-action="Create" method="post">
+    <label asp-for="PlateNumber">Numéro de plaque</label>
     <input asp-for="PlateNumber" />
     <span asp-validation-for="PlateNumber"></span>
+    <label asp-for="CarModelId">Id du modèle de voiture</label>
     <input asp-for="CarModelId" />
     <span asp-validation-for="CarModelId"></span>
     <button type="submit">Create</button>

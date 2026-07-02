@@ -2,6 +2,7 @@
 @model CarBrandCreateVM
 
 <form asp-action="Create" method="post">
+    <label asp-for="Name">Nom de la marque</label>
     <input asp-for="Name" />
     <span asp-validation-for="Name"></span>
     <button type="submit">Create</button>

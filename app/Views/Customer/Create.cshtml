@@ -1,12 +1,13 @@
 @model CarCustomerCreateVM
 
 <form asp-action="Create" method="post">
-    <label asp-for="Name"></label>
+    <label asp-for="Name">Nom du client</label>
     <input asp-for="Name" />
     <span asp-validation-for="Name"></span>
-    <label asp-for="Email"></label>
+    <label asp-for="Email">Email</label>
     <input asp-for="Email" />
     <span asp-validation-for="Email"></span>
+    <label asp-for="PhoneNumber">Numéro de téléphone</label>
     <input asp-for="PhoneNumber" />
     <span asp-validation-for="PhoneNumber"></span>
     <button type="submit">Create</button>
