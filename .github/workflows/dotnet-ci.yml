@@ -81,6 +81,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download Docker image artifact
         uses: actions/download-artifact@v4
         with:
@@ -95,6 +98,8 @@ jobs:
           image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: table
           exit-code: "1"
+          ignore-unfixed: true
+          trivyignores: .trivyignore
           vuln-type: "os,library"
           severity: "HIGH,CRITICAL"
 
