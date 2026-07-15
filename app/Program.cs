@@ -13,6 +13,7 @@ builder.Services.AddScoped<ICarModelRepository, CarModelSqlliteRepository>();
 builder.Services.AddScoped<ICarRepository, CarSqlliteRepository>();
 builder.Services.AddScoped<ICarCustomerRepository, CarCustomerSqlliteRepository>();
 builder.Services.AddScoped<ICarReservationRepository, CarReservationSqlliteRepository>();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -42,5 +43,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHealthChecks("/health");
 
 app.Run();
