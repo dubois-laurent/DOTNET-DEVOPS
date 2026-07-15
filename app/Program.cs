@@ -1,6 +1,7 @@
 using aspnet.Data;
 using aspnet.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseHttpMetrics();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -45,5 +48,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHealthChecks("/health");
+
+app.MapMetrics();
 
 app.Run();
