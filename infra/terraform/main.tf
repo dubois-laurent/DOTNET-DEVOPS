@@ -1,76 +1,60 @@
 terraform {
-    required_version = ">= 1.5"
+  required_version = ">= 1.5"
 
 
-    required_providers { 
-        kubernetes = { 
-            source = "hashicorp/kubernetes"
-            version = "~> 2.35"
-        }
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.35"
     }
+  }
 }
 
-provider "kubernetes"{
-    config_path = pathexpand(var.kube_config_path)
-    config_context = var.kube_context
+provider "kubernetes" {
+  config_path    = pathexpand(var.kube_config_path)
+  config_context = var.kube_context
 }
 
 locals {
-    labels = {
-        app = var.app_name
-        "managed_by" = "terraform"
-    }
+  labels = {
+    app          = var.app_name
+    "managed_by" = "terraform"
+  }
 }
 
-resource "kubernetes_namespace" "locatic" { 
-    metadata {
-        name = var.namespace
-        labels = {
-            project = "locatic-app"
-            "managed_by" = "terraform"
-        }
+resource "kubernetes_namespace" "locatic" {
+  metadata {
+    name = var.namespace
+    labels = {
+      project      = "locatic-app"
+      "managed_by" = "terraform"
     }
+  }
 }
 
 resource "kubernetes_config_map" "app" {
-    metadata {
-        name = "app-config"
-        namespace = kubernetes_namespace.locatic.metadata[0].name
-    }
-
-    data = {
-        NODE.ENV = var.node_env
-        APP_PORT = tostring(var.app_port)
-        DB_host = "postgres-svc"
-        DB_PORT = "5432"
-        DB_NAME = var.db_name
-        APP_LOG_LEVEL = var.app_log_level
-        LOG_LEVEL = var.app_log_level
-    }
-}
-
-resource "kubernetes_secret" "app" {
   metadata {
-    name      = "app-secrets"
+    name      = "app-config"
     namespace = kubernetes_namespace.locatic.metadata[0].name
   }
 
   data = {
-    DB_USER     = var.db_user
-    DB_PASSWORD = var.db_password
+    NODE_ENV      = var.node_env
+    APP_PORT      = tostring(var.app_port)
+    APP_LOG_LEVEL = var.app_log_level
+    LOG_LEVEL     = var.app_log_level
+    "ConnectionStrings__DefaultConnection" = "Data Source=/data/locationvoiture.db"
   }
-
-  type = "Opaque"
 }
 
-resource "kubernetes_persistent_volume_claim" "postgres" {
+resource "kubernetes_persistent_volume_claim" "sqlite" {
   wait_until_bound = false
 
   metadata {
-    name      = "postgres-persistent-volume-claim"
+    name      = "sqlite-persistent-volume-claim"
     namespace = kubernetes_namespace.locatic.metadata[0].name
     labels = {
-      app = "postgres"
+      app = var.app_name
     }
   }
 
@@ -78,120 +62,9 @@ resource "kubernetes_persistent_volume_claim" "postgres" {
     access_modes = ["ReadWriteOnce"]
     resources {
       requests = {
-        storage = var.postgres_storage
+        storage = var.sqlite_storage_size
       }
     }
-  }
-}
-
-resource "kubernetes_deployment" "postgres" {
-  metadata {
-    name      = "postgres"
-    namespace = kubernetes_namespace.locatic.metadata[0].name
-    labels = {
-      app = "postgres"
-    }
-  }
-
-  spec {
-    replicas = 1
-
-    selector {
-      match_labels = {
-        app = "postgres"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          app = "postgres"
-        }
-      }
-
-      spec {
-        container {
-          name  = "postgres"
-          image = "postgres:16-alpine"
-
-          port {
-            name           = "postgres"
-            container_port = 5432
-          }
-
-          env {
-            name = "POSTGRES_DB"
-            value_from {
-              config_map_key_ref {
-                name = kubernetes_config_map.app.metadata[0].name
-                key  = "DB_NAME"
-              }
-            }
-          }
-
-          env {
-            name = "POSTGRES_USER"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.app.metadata[0].name
-                key  = "DB_USER"
-              }
-            }
-          }
-
-          env {
-            name = "POSTGRES_PASSWORD"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.app.metadata[0].name
-                key  = "DB_PASSWORD"
-              }
-            }
-          }
-
-          volume_mount {
-            name       = "postgres-storage"
-            mount_path = "/var/lib/postgresql/data"
-          }
-
-          readiness_probe {
-            exec {
-              command = ["pg_isready", "-U", var.db_user]
-            }
-            initial_delay_seconds = 5
-            period_seconds        = 5
-          }
-        }
-
-        volume {
-          name = "postgres-storage"
-          persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.postgres.metadata[0].name
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "kubernetes_service" "postgres" {
-  metadata {
-    name      = "postgres-svc"
-    namespace = kubernetes_namespace.locatic.metadata[0].name
-  }
-
-  spec {
-    selector = {
-      app = "postgres"
-    }
-
-    port {
-      name        = "postgres"
-      port        = 5432
-      target_port = "postgres"
-    }
-
-    type = "ClusterIP"
   }
 }
 
@@ -211,12 +84,11 @@ resource "kubernetes_deployment" "app" {
       }
     }
 
+    # Recreate strategy: with a single ReadWriteOnce SQLite volume, a rolling
+    # update would deadlock (new pod can't mount the PVC while the old pod
+    # still holds it).
     strategy {
-      type = "RollingUpdate"
-      rolling_update {
-        max_surge       = "1"
-        max_unavailable = "0"
-      }
+      type = "Recreate"
     }
 
     template {
@@ -241,10 +113,9 @@ resource "kubernetes_deployment" "app" {
             }
           }
 
-          env_from {
-            secret_ref {
-              name = kubernetes_secret.app.metadata[0].name
-            }
+          volume_mount {
+            name       = "sqlite-storage"
+            mount_path = "/data"
           }
 
           readiness_probe {
@@ -263,6 +134,13 @@ resource "kubernetes_deployment" "app" {
             }
             initial_delay_seconds = 15
             period_seconds        = 20
+          }
+        }
+
+        volume {
+          name = "sqlite-storage"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.sqlite.metadata[0].name
           }
         }
       }

@@ -1,0 +1,42 @@
+---
+- name: Verifier les prerequis locaux et deployer Locatic sur minikube
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Verifier que Docker est disponible
+      command: docker info
+      changed_when: false
+
+    - name: Verifier que minikube est demarre
+      command: minikube status
+      register: minikube_status
+      changed_when: false
+      failed_when: "'Running' not in minikube_status.stdout"
+
+    - name: Verifier le contexte kubectl actif
+      command: kubectl config current-context
+      register: kube_current_context
+      changed_when: false
+      failed_when: kube_current_context.stdout.strip() != kube_context
+
+    - name: Valider la configuration Terraform
+      command: terraform validate
+      args:
+        chdir: "{{ terraform_dir }}"
+      changed_when: false
+
+    - name: Appliquer l'infrastructure Terraform (namespace, configmap, PVC, deployment, service)
+      command: terraform apply -auto-approve
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: terraform_apply
+
+    - name: Attendre que le deploiement de l'application soit pret
+      # kubectl rollout status n'aboutit que si le readinessProbe /health repond,
+      # ce qui vaut comme verification de sante de l'application.
+      command: >
+        kubectl -n {{ namespace }} rollout status deployment/{{ app_name }}
+        --timeout=180s
+      changed_when: false

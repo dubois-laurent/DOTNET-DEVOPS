@@ -20,3 +20,7 @@ app/tests/obj/
 
 .DS_Store
 Thumbs.db
+
+# Python virtual environments
+.venv/
+venv/

@@ -15,6 +15,7 @@ output "runtime_contract" {
     runtime       = "kubernetes"
     replicas      = var.app_replicas
     app_log_level = var.app_log_level
-    database_host = kubernetes_service.postgres.metadata[0].name
+    database_type = "sqlite"
+    sqlite_pvc    = kubernetes_persistent_volume_claim.sqlite.metadata[0].name
   }
 }
