@@ -24,3 +24,17 @@ Thumbs.db
 # Python virtual environments
 .venv/
 venv/
+
+# Terraform (complement)
+infra/terraform/terraform.tfstate.d/
+infra/terraform/crash.log
+*.tfvars.json
+
+# Ansible
+*.retry
+
+# Binaires telecharges pendant l'installation des outils (WSL)
+kubectl
+minikube-linux-amd64
+packages-microsoft-prod.deb
+*.deb

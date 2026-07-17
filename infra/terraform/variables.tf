@@ -12,7 +12,7 @@ variable "image_repository" {
 variable "image_tag" {
   description = "Tag de l'image Docker"
   type        = string
-  default     = "1.0.0"
+  default     = "latest"
 }
 
 variable "sqlite_storage_size" {
@@ -30,7 +30,7 @@ variable "kube_config_path" {
 variable "kube_context" {
   description = "Contexte kube ctl à utiliser"
   type        = string
-  default     = "kind_devops_training"
+  default     = "minikube"
 }
 
 variable "app_name" {
@@ -40,12 +40,12 @@ variable "app_name" {
 
 variable "app_port" {
   type    = number
-  default = 3000
+  default = 8080
 }
 
 variable "app_replicas" {
   type    = number
-  default = 3
+  default = 1
 }
 
 variable "node_env" {

@@ -168,3 +168,90 @@ resource "kubernetes_service" "app" {
     type = "ClusterIP"
   }
 }
+
+resource "kubernetes_config_map" "nginx" {
+  metadata {
+    name      = "nginx-config"
+    namespace = kubernetes_namespace.locatic.metadata[0].name
+  }
+
+  data = {
+    "default.conf" = <<-EOT
+      server {
+        listen 80;
+        server_name _;
+
+        location / {
+          proxy_pass         http://${kubernetes_service.app.metadata[0].name}:80;
+          proxy_set_header   Host $host;
+          proxy_set_header   X-Real-IP $remote_addr;
+          proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+      }
+    EOT
+  }
+}
+
+
+resource "kubernetes_deployment" "nginx" {
+  metadata {
+    name      = "nginx"
+    namespace = kubernetes_namespace.locatic.metadata[0].name
+  }
+
+  spec {
+    replicas = 1
+
+    selector {
+      match_labels = { app = "nginx" }
+    }
+
+    template {
+      metadata {
+        labels = { app = "nginx" }
+      }
+
+      spec {
+        container {
+          name  = "nginx"
+          image = "nginx:1.27-alpine"
+
+          port {
+            container_port = 80
+          }
+
+          volume_mount {
+            name       = "nginx-config"
+            mount_path = "/etc/nginx/conf.d"   # nginx charge tout ce qui est dans ce dossier
+          }
+        }
+
+        volume {
+          name = "nginx-config"
+          config_map {
+            name = kubernetes_config_map.nginx.metadata[0].name
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "nginx" {
+  metadata {
+    name      = "nginx-svc"
+    namespace = kubernetes_namespace.locatic.metadata[0].name
+  }
+
+  spec {
+    selector = { app = "nginx" }
+
+    port {
+      port        = 80
+      target_port = 80
+      node_port   = 30080   # port fixe accessible via $(minikube ip):30080
+    }
+
+    type = "NodePort"
+  }
+}

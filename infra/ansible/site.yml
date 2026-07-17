@@ -28,15 +28,25 @@
       changed_when: false
 
     - name: Appliquer l'infrastructure Terraform (namespace, configmap, PVC, deployment, service)
-      command: terraform apply -auto-approve
+      command: terraform apply -var="kube_context=minikube" -auto-approve
       args:
         chdir: "{{ terraform_dir }}"
       register: terraform_apply
 
     - name: Attendre que le deploiement de l'application soit pret
-      # kubectl rollout status n'aboutit que si le readinessProbe /health repond,
-      # ce qui vaut comme verification de sante de l'application.
       command: >
         kubectl -n {{ namespace }} rollout status deployment/{{ app_name }}
         --timeout=180s
       changed_when: false
+
+    - name: Attendre que Nginx soit prêt
+      command: >
+        kubectl -n {{ namespace }} rollout status deployment/nginx
+        --timeout=120s
+      changed_when: false
+
+    - name: Afficher l'URL d'acces
+      command: >
+        terraform output -raw nginx_acces_url
+      args:
+        chdir: "{{ terraform_dir }}"
