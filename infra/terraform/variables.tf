@@ -6,7 +6,7 @@ variable "namespace" {
 
 variable "image_repository" {
   type    = string
-  default = "ghcr.io/dubois-laurent/locationvoiture"
+  default = "tiraprong/locationvoiture"
 }
 
 variable "image_tag" {
