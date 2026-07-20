@@ -1,0 +1,40 @@
+infra/terraform/.terraform/
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.backup
+infra/terraform/.terraform.lock.hcl
+*.tfvars
+override.tf
+override.tf.json
+
+.env
+secrets/
+
+.db
+.db-shm
+.db-wal
+
+app/bin/
+app/obj/
+app/tests/bin/
+app/tests/obj/
+
+.DS_Store
+Thumbs.db
+
+# Python virtual environments
+.venv/
+venv/
+
+# Terraform (complement)
+infra/terraform/terraform.tfstate.d/
+infra/terraform/crash.log
+*.tfvars.json
+
+# Ansible
+*.retry
+
+# Binaires telecharges pendant l'installation des outils (WSL)
+kubectl
+minikube-linux-amd64
+packages-microsoft-prod.deb
+*.deb
