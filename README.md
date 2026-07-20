@@ -56,7 +56,7 @@ docker build -t locationvoiture:latest -f app/Dockerfile app
 docker run --rm -p 3000:8080 locationvoiture:latest
 ```
 
-L'application Docker écoute sur le port `8080` dans le conteneur.
+L'application Docker écoute sur le port `8080` dans le conteneur
 
 ## Monitoring local
 
