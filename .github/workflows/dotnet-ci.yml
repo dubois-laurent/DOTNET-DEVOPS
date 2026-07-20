@@ -10,7 +10,7 @@ on:
 
 env:
   DOTNET_VERSION: "8.0.x"
-  IMAGE_NAME: ghcr.io/dubois-laurent/locationvoiture
+  IMAGE_NAME: tiraprong/locationvoiture
 
 jobs:
   # Stage 1 : Tests
