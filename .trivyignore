@@ -1,0 +1,18 @@
+# Temporary ignores for vulnerabilities without upstream fixes at scan time.
+# Review and remove entries regularly.
+# Format: CVE-ID [optional comments]
+
+# Debian base image CVEs reported as unfixed/fix_deferred/will_not_fix in Trivy output
+CVE-2026-41992
+CVE-2026-54369
+CVE-2026-54371
+CVE-2025-69720
+CVE-2026-42496
+CVE-2026-8376
+CVE-2026-42497
+CVE-2026-48962
+CVE-2026-9538
+CVE-2023-45853
+
+# .NET dependency vulnerability currently reported without fixed version
+CVE-2025-6965
